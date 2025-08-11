@@ -1,9 +1,11 @@
 package com.betul.productmanagement.service;
 
+import com.betul.productmanagement.DTO.AuthResponse;
 import com.betul.productmanagement.DTO.LoginRequest;
 import com.betul.productmanagement.DTO.RegisterRequest;
 import com.betul.productmanagement.entity.User;
 import com.betul.productmanagement.repository.UserRepository;
+import com.betul.productmanagement.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,7 @@ public class UserService {
     private final JwtUtil jwtUtil; // JWT aracı
 
     // Register
-    public String registerUser(RegisterRequest request) {
+    public AuthResponse registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already in use");
         }
@@ -33,17 +35,19 @@ public class UserService {
         userRepository.save(user);
 
         // Kayıt olan kullanıcıya JWT üret
-        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole().name());
     }
 
     // Login
-    public String loginUser(LoginRequest request) {
+    public AuthResponse loginUser(LoginRequest request) {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
                 // Giriş başarılı → JWT üret
-                return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+                String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+                return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole().name());
             }
         }
         throw new RuntimeException("Invalid credentials");
@@ -53,5 +57,3 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 }
-
-

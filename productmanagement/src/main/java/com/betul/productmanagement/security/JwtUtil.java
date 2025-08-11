@@ -1,4 +1,4 @@
-package com.ornekproje.security;
+package com.betul.productmanagement.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -61,5 +61,5 @@ public class JwtUtil {
                 .getBody();
     }
 }
-
+//kontrol için ----------------------
 
